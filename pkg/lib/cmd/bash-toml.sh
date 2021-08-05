@@ -3,109 +3,127 @@
 set -ETeo pipefail
 shopt -s nullglob extglob globasciiranges
 
-source "$BASH_TOML_LIB_DIR/util/is.sh"
-source "$BASH_TOML_LIB_DIR/util/util.sh"
-source "$BASH_TOML_LIB_DIR/util/error.sh"
+for f in "$BASH_TOML_LIB_DIR"/util/?*.sh; do
+	# shellcheck disable=SC1090
+	source "$f"
+done
+
 
 bash-toml() {
+	TOML_ERROR=
+	TOML_MANUAL_ERROR='no'
+
 	declare char=
 	declare mode='MODE_DEFAULT'
 	declare -i PARSER_LINE_NUMBER=0
 	declare -i PARSER_COLUMN_NUMBER=0
 
 	while IFS= read -rn 1 char; do
-		if is.newline "$char"; then
+		if bash_toml.is.newline "$char"; then
 			PARSER_LINE_NUMBER+=1
 			PARSER_COLUMN_NUMBER=0
 		else
 			PARSER_COLUMN_NUMBER+=1
 		fi
 
-		debug
+		bash_toml.debug
 
 		case "$mode" in
 		MODE_DEFAULT)
-			if is.whitespace "$char"; then
+			if bash_toml.is.whitespace "$char"; then
 				:
-			elif is.newline "$char"; then
+			elif bash_toml.is.newline "$char"; then
 				:
-			elif is.table "$char"; then
-				die "Tables are not supported"
-			elif is.double_quote "$char"; then
-				die "Quoted keys are not supported"
-			elif is.valid_bare_key_char "$char"; then
-				create_key_token "$char"
+			elif bash_toml.is.table "$char"; then
+				bash_toml.die "Tables are not supported"
+				return 1
+			elif bash_toml.is.double_quote "$char"; then
+				bash_toml.die "Quoted keys are not supported"
+				return 1
+			elif bash_toml.is.valid_bare_key_char "$char"; then
+				bash_toml.init_key_string "$char"
 				mode="DURING_BARE_KEY"
 			else
-				die "Character '$char' is not valid in this context"
+				bash_toml.die "Character '$char' is not valid in this context"
+				return 1
 			fi
 			;;
 		BEFORE_SOME_VALUE)
-			if is.whitespace "$char"; then
+			if bash_toml.is.whitespace "$char"; then
 				:
-			elif is.newline "$char"; then
+			elif bash_toml.is.newline "$char"; then
 				# TODO: not being fired?
-				die "Key name found without value 2"
-			elif is.double_quote "$char"; then
-				die "Double quote values are not supported"
+				bash_toml.die "Key name found without value 2"
+				return 1
+			elif bash_toml.is.double_quote "$char"; then
+				bash_toml.die "Double quote values are not supported"
+				return 1
 				mode='DURING_VALUE_DOUBLE_QUOTE'
-				create_key_value
-			elif is.single_quote "$char"; then
+				bash_toml.init_value_string
+			elif bash_toml.is.single_quote "$char"; then
 				mode='DURING_VALUE_SINGLE_QUOTE'
-				create_key_value
-				# die "Single quote values are not supported"
-			elif is.empty "$char"; then
-				die "Expected value"
+				bash_toml.init_value_string
+			elif bash_toml.is.empty "$char"; then
+				bash_toml.die "Expected value"
+				return 1
 			else
-				die "Datetime, Boolean, Float, Integer, Array, Inline Table, etc. etc. Are not supported"
+				bash_toml.die "Datetime, Boolean, Float, Integer, Array, Inline Table, etc. etc. Are not supported"
+				return 1
 			fi
 			;;
 		AFTER_ANY_VALUE)
-			if is.whitespace "$char"; then
+			if bash_toml.is.whitespace "$char"; then
 				:
-			elif is.newline "$char"; then
+			elif bash_toml.is.newline "$char"; then
 				mode='MODE_DEFAULT'
-			elif is.empty "$char"; then
+			elif bash_toml.is.empty "$char"; then
 				mode='MODE_DEFAULT'
 			else
-				die "Newline expected"
+				bash_toml.die "Newline expected"
+				return 1
 			fi
 			;;
 		# directly after the `"`
 		DURING_VALUE_DOUBLE_QUOTE)
 
-			# append_key_value "$char"
+			# bash_toml.append_value_string "$char"
 			;;
 		# directly after the `'`
 		DURING_VALUE_SINGLE_QUOTE)
-			if is.single_quote "$char"; then
+			if bash_toml.is.single_quote "$char"; then
 				mode='AFTER_ANY_VALUE'
-			elif is.newline "$char"; then
-				die "Newlines are not valid in single quote"
+			elif bash_toml.is.newline "$char"; then
+				bash_toml.die "Newlines are not valid in single quote"
+				return 1
 			else
-				append_key_value "$char"
+				bash_toml.append_value_string "$char"
 			fi
 			;;
 		DURING_BARE_KEY)
-			if is.whitespace "$char"; then
+			if bash_toml.is.whitespace "$char"; then
 				mode="BEFORE_KEY_EQUALS"
-			elif is.newline "$char"; then
-				die "Key name found without value"
-			elif is.valid_bare_key_char "$char"; then
-				append_key_token "$char"
-			elif is.empty "$char"; then
-				die "Cannot reach end of file right now, have not finished parsing key"
+			elif bash_toml.is.newline "$char"; then
+				bash_toml.die "Key name found without value"
+				return 1
+			elif bash_toml.is.valid_bare_key_char "$char"; then
+				bash_toml.append_key_string "$char"
+			elif bash_toml.is.empty "$char"; then
+				bash_toml.die "Cannot reach end of file right now, have not finished parsing key"
+				return 1
 			else
-				die "Character '$char' is not valid in this context"
+				bash_toml.die "Character '$char' is not valid in this context"
+				return 1
 			fi
 			;;
 		BEFORE_KEY_EQUALS)
-			if is.equals_sign "$char"; then
+			if bash_toml.is.equals_sign "$char"; then
 				mode="BEFORE_SOME_VALUE"
-			elif is.empty "$char"; then
-				die "No equals sign found. End of file reached"
+			elif bash_toml.is.empty "$char"; then
+				bash_toml.die "No equals sign found. End of file reached"
+				return 1
 			else
-				die "Expected equals sign; not '$char'"
+				bash_toml.die "Expected equals sign; not '$char'"
+				return 1
 			fi
 		esac
 
@@ -117,15 +135,17 @@ bash-toml() {
 		:
 		;;
 	BEFORE_SOME_VALUE)
-		die "Key name found without value theta"
+		bash_toml.die "Key name found without value theta"
+		return 1
 		;;
 	DURING_BARE_KEY)
 		#  i.g. `keyName`
-		die "Key name found without value"
+		bash_toml.die "Key name found without value"
+		return 1
 		;;
 	BEFORE_KEY_EQUALS)
 		;;
 	esac
 
-	TOML["$KEY_TOKEN"]="$KEY_VALUE"
+	TOML["$BASH_TOML_KEY_STRING"]="$BASH_TOML_KEY_VALUE_STRING"
 }

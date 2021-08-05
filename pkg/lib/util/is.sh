@@ -1,6 +1,8 @@
 # shellcheck shell=bash
 
-is.whitespace() {
+# TODO: namespace this later
+
+bash_toml.is.whitespace() {
 	if [[ "$1" == @($'\u0009'|$'\u0020') ]]; then
 		return 0
 	else
@@ -8,7 +10,7 @@ is.whitespace() {
 	fi
 }
 
-is.newline() {
+bash_toml.is.newline() {
 	if [[ "$1" == @($'\u000A'|$'\u0D0A') ]]; then
 		return 0
 	else
@@ -16,7 +18,7 @@ is.newline() {
 	fi
 }
 
-is.table() {
+bash_toml.is.table() {
 	if [[ "$1" == '[' ]]; then
 		return 0
 	else
@@ -24,7 +26,7 @@ is.table() {
 	fi
 }
 
-is.double_quote() {
+bash_toml.is.double_quote() {
 	if [[ "$1" == '"' ]]; then
 		return 0
 	else
@@ -32,7 +34,7 @@ is.double_quote() {
 	fi
 }
 
-is.single_quote() {
+bash_toml.is.single_quote() {
 	if [[ "$1" == "'" ]]; then
 		return 0
 	else
@@ -40,7 +42,7 @@ is.single_quote() {
 	fi
 }
 
-is.valid_bare_key_char() {
+bash_toml.is.valid_bare_key_char() {
 	if [[ "$1" == [A-Za-z0-9_-] ]]; then
 		return 0
 	else
@@ -48,7 +50,7 @@ is.valid_bare_key_char() {
 	fi
 }
 
-is.equals_sign() {
+bash_toml.is.equals_sign() {
 	if [[ "$1" == = ]]; then
 		return 0
 	else
@@ -56,7 +58,7 @@ is.equals_sign() {
 	fi
 }
 
-is.empty() {
+bash_toml.is.empty() {
 	if [[ "$1" == '' ]]; then
 		return 0
 	else

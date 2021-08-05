@@ -44,14 +44,14 @@ If you want to have more fine-grained control over your error handling
 set +e
 
 source ./bash-toml.sh
+TOML_MANUAL_ERROR='yes'
 if ! bash-toml <<< "key = '"; then
-	if (($? == 1)); then
+	if [ -n "$TOML_ERROR" ]; then
+		# Problem with the 'file.toml'
 		:
-		# Error with the toml format
-		# printf '%s' "$TOML_ERROR" "$TOML_CODE"
 	else
-		# Internal `bash-toml` error
-		:
+		# Internal 'bash-toml' error
+		exit 2
 	fi
 fi
 ```
