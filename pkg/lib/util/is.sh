@@ -1,7 +1,5 @@
 # shellcheck shell=bash
 
-# TODO: namespace this later
-
 bash_toml.is.whitespace() {
 	if [[ "$1" == @($'\u0009'|$'\u0020') ]]; then
 		return 0

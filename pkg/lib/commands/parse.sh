@@ -35,8 +35,9 @@ bash_toml.do_parse() {
 				bash_toml.init_key_string "$char"
 				mode="DURING_BARE_KEY"
 			else
-				bash_toml.die "Character '$char' is not valid in this context"
-				return 1
+				# If after only gobbling up whitespace, and there is nothign left,
+				# we are done
+				return 0
 			fi
 			;;
 		BEFORE_SOME_VALUE)
@@ -55,7 +56,7 @@ bash_toml.do_parse() {
 				mode='DURING_VALUE_SINGLE_QUOTE'
 				bash_toml.init_value_string
 			elif bash_toml.is.empty "$char"; then
-				bash_toml.die "Expected value"
+				bash_toml.parse_fail 'INCOMPLETE_VALUE_ANY'
 				return 1
 			else
 				bash_toml.die "Datetime, Boolean, Float, Integer, Array, Inline Table, etc. etc. Are not supported"
@@ -93,16 +94,18 @@ bash_toml.do_parse() {
 		DURING_BARE_KEY)
 			if bash_toml.is.whitespace "$char"; then
 				mode="BEFORE_KEY_EQUALS"
+			elif bash_toml.is.equals_sign "$char"; then
+				mode='BEFORE_SOME_VALUE'
 			elif bash_toml.is.newline "$char"; then
 				bash_toml.die "Key name found without value"
 				return 1
 			elif bash_toml.is.valid_bare_key_char "$char"; then
 				bash_toml.append_key_string "$char"
 			elif bash_toml.is.empty "$char"; then
-				bash_toml.die "Cannot reach end of file right now, have not finished parsing key"
+				bash_toml.parse_fail 'INCOMPLETE_KEY'
 				return 1
 			else
-				bash_toml.die "Character '$char' is not valid in this context"
+				bash_toml.parse_fail 'UNEXPECTED_BRANCH'
 				return 1
 			fi
 			;;
@@ -113,7 +116,7 @@ bash_toml.do_parse() {
 				bash_toml.die "No equals sign found. End of file reached"
 				return 1
 			else
-				bash_toml.die "Expected equals sign; not '$char'"
+				bash_toml.parse_fail 'INVALID_KEY'
 				return 1
 			fi
 		esac
