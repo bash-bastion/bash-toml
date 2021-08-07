@@ -7,6 +7,7 @@ declare -gA BASH_TOML_ERRORS=(
 	[UNICODE_INVALID]='The resulting unicode code point was invalid'
 	[KEY_ABSENT]='Key does not have a value'
 	[UNEXPECTED_EOF]='Unexpected end of line'
+	[UNEXPECTED_NEWLINE]='Unexpected newline'
 	[UNEXPECTED_CHARACTER]='An unexpected character was encountered' # Generalization of any of the following errors
 	[KEY_INVALID]='The key is not valid'
 	[VALUE_INVALID]='The value could not be parsed'

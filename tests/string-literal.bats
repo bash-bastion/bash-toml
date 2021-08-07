@@ -1,24 +1,34 @@
 load './util/init.sh'
 
 @test "fails on invalid literal string 1" {
-	run bash_toml.do_parse <<-"EOF"
-	fox = '
-	EOF
+	run bash_toml.do_parse < <(printf "fox = '")
 
 	assert_failure
 	assert_output -p "UNEXPECTED_EOF"
 }
 
 @test "fails on invalid literal string 2" {
-	run bash_toml.do_parse <<-"EOF"
-	fox = 'a
-	EOF
+	run bash_toml.do_parse < <(printf "fox = '\n")
+
+	assert_failure
+	assert_output -p "UNEXPECTED_NEWLINE"
+}
+
+@test "fails on invalid literal string 3" {
+	run bash_toml.do_parse < <(printf "fox = 'a")
 
 	assert_failure
 	assert_output -p "UNEXPECTED_EOF"
 }
 
-@test "fails on invalid literal string 3" {
+@test "fails on invalid literal string 4" {
+	run bash_toml.do_parse < <(printf "fox = 'a\n")
+
+	assert_failure
+	assert_output -p "UNEXPECTED_NEWLINE"
+}
+
+@test "fails on invalid literal string 5" {
 	run bash_toml.do_parse <<-"EOF"
 	fox = '''
 	EOF

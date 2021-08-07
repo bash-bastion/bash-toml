@@ -3,39 +3,55 @@
 load './util/init.sh'
 
 @test "fails on invalid basic string 1" {
-	run bash_toml.do_parse <<-"EOF"
-	fox = "
-	EOF
+	run bash_toml.do_parse < <(printf 'fox = "')
 
 	assert_failure
 	assert_output -p "UNEXPECTED_EOF"
 }
 
 @test "fails on invalid basic string 2" {
-	run bash_toml.do_parse <<-"EOF"
-	fox = "a
-	EOF
+	run bash_toml.do_parse < <(printf 'fox = "\n')
 
 	assert_failure
-	assert_output -p "UNEXPECTED_EOF"
+	assert_output -p "UNEXPECTED_NEWLINE"
 }
 
-# TODO: this shouldn't be
 @test "fails on invalid basic string 3" {
-	run bash_toml.do_parse <<< 'fox = "ab'
+	run bash_toml.do_parse < <(printf 'fox = "a')
 
 	assert_failure
 	assert_output -p "UNEXPECTED_EOF"
 }
 
 @test "fails on invalid basic string 4" {
+	run bash_toml.do_parse < <(printf 'fox = "a\n')
+
+	assert_failure
+	assert_output -p "UNEXPECTED_NEWLINE"
+}
+
+@test "fails on invalid basic string 5" {
+	run bash_toml.do_parse < <(printf 'fox = "ab')
+
+	assert_failure
+	assert_output -p "UNEXPECTED_EOF"
+}
+
+@test "fails on invalid basic string 6" {
+	run bash_toml.do_parse < <(printf 'fox = "ab\n')
+
+	assert_failure
+	assert_output -p "UNEXPECTED_NEWLINE"
+}
+
+@test "fails on invalid basic string 7" {
 	run bash_toml.do_parse <<< 'fox = "\j"'
 
 	assert_failure
 	assert_output -p "UNEXPECTED_CHARACTER"
 }
 
-@test "fails on invalid basic string 5" {
+@test "fails on invalid basic string 8" {
 	for hex in D800 DFFF; do
 		run bash_toml.do_parse <<< "fox = "\"\\u"$hex"\"
 
@@ -44,7 +60,7 @@ load './util/init.sh'
 	done
 }
 
-@test "fails on invalid basic string 6" {
+@test "fails on invalid basic string 9" {
 	run bash_toml.do_parse <<-"EOF"
 	fox = "\U00110000"
 	EOF
