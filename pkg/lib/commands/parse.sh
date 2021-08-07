@@ -135,7 +135,7 @@ bash_toml.do_parse() {
 			elif bash_toml.is.empty "$char"; then
 				mode='MODE_DEFAULT'
 			else
-				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Newline expected"
+				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Encountered character '$char' when a newline was expected"
 				return 1
 			fi
 			;;

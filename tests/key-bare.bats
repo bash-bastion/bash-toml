@@ -38,10 +38,11 @@ load './util/init.sh'
 	assert_output -p 'UNEXPECTED_EOF'
 }
 
-@test "succeeds on valid key 1" {
+@test "succeeds on valid bare key 1" {
 	bash_toml.do_parse <<-"EOF"
 	fox = 'value'
 	EOF
 
-	test_util.toml.has_key 'fox'
+	assert test_util.toml.has_key 'fox'
+	assert test_util.toml.key_has_value 'fox' 'value'
 }
