@@ -20,6 +20,7 @@ bash_toml.do_parse() {
 		bash_toml.debug
 
 		case "$mode" in
+		# State in which parser starts, and before any given TOML construct
 		MODE_DEFAULT)
 			if bash_toml.is.whitespace "$char"; then
 				:
@@ -33,14 +34,14 @@ bash_toml.do_parse() {
 				return 1
 			elif bash_toml.is.valid_bare_key_char "$char"; then
 				bash_toml.init_key_string "$char"
-				mode="DURING_BARE_KEY"
+				mode="MODE_BAREKEY_DURING_KEY"
 			else
 				# If after only gobbling up whitespace, and there is nothign left,
 				# we are done
 				return 0
 			fi
 			;;
-		BEFORE_SOME_VALUE)
+		MODE_ANY_BEFORE_VALUE)
 			if bash_toml.is.whitespace "$char"; then
 				:
 			elif bash_toml.is.newline "$char"; then
@@ -50,10 +51,10 @@ bash_toml.do_parse() {
 			elif bash_toml.is.double_quote "$char"; then
 				bash_toml.die "Double quote values are not supported"
 				return 1
-				mode='DURING_VALUE_DOUBLE_QUOTE'
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
 				bash_toml.init_value_string
 			elif bash_toml.is.single_quote "$char"; then
-				mode='DURING_VALUE_SINGLE_QUOTE'
+				mode='MODE_SINGLEQUOTE_DURING_VALUE'
 				bash_toml.init_value_string
 			elif bash_toml.is.empty "$char"; then
 				bash_toml.parse_fail 'INCOMPLETE_VALUE_ANY'
@@ -63,39 +64,11 @@ bash_toml.do_parse() {
 				return 1
 			fi
 			;;
-		AFTER_ANY_VALUE)
+		MODE_BAREKEY_DURING_KEY)
 			if bash_toml.is.whitespace "$char"; then
-				:
-			elif bash_toml.is.newline "$char"; then
-				mode='MODE_DEFAULT'
-			elif bash_toml.is.empty "$char"; then
-				mode='MODE_DEFAULT'
-			else
-				bash_toml.die "Newline expected"
-				return 1
-			fi
-			;;
-		# directly after the `"`
-		DURING_VALUE_DOUBLE_QUOTE)
-
-			# bash_toml.append_value_string "$char"
-			;;
-		# directly after the `'`
-		DURING_VALUE_SINGLE_QUOTE)
-			if bash_toml.is.single_quote "$char"; then
-				mode='AFTER_ANY_VALUE'
-			elif bash_toml.is.newline "$char"; then
-				bash_toml.die "Newlines are not valid in single quote"
-				return 1
-			else
-				bash_toml.append_value_string "$char"
-			fi
-			;;
-		DURING_BARE_KEY)
-			if bash_toml.is.whitespace "$char"; then
-				mode="BEFORE_KEY_EQUALS"
+				mode="MODE_EQUALS_BEFORE"
 			elif bash_toml.is.equals_sign "$char"; then
-				mode='BEFORE_SOME_VALUE'
+				mode='MODE_ANY_BEFORE_VALUE'
 			elif bash_toml.is.newline "$char"; then
 				bash_toml.die "Key name found without value"
 				return 1
@@ -109,9 +82,9 @@ bash_toml.do_parse() {
 				return 1
 			fi
 			;;
-		BEFORE_KEY_EQUALS)
+		MODE_EQUALS_BEFORE)
 			if bash_toml.is.equals_sign "$char"; then
-				mode="BEFORE_SOME_VALUE"
+				mode="MODE_ANY_BEFORE_VALUE"
 			elif bash_toml.is.empty "$char"; then
 				bash_toml.die "No equals sign found. End of file reached"
 				return 1
@@ -119,6 +92,35 @@ bash_toml.do_parse() {
 				bash_toml.parse_fail 'INVALID_KEY'
 				return 1
 			fi
+			;;
+		# directly after the `"`
+		MODE_DOUBLEQUOTE_DURING_VALUE)
+
+			# bash_toml.append_value_string "$char"
+			;;
+		# directly after the `'`
+		MODE_SINGLEQUOTE_DURING_VALUE)
+			if bash_toml.is.single_quote "$char"; then
+				mode='MODE_ANY_AFTER_VALUE'
+			elif bash_toml.is.newline "$char"; then
+				bash_toml.die "Newlines are not valid in single quote"
+				return 1
+			else
+				bash_toml.append_value_string "$char"
+			fi
+			;;
+		MODE_ANY_AFTER_VALUE)
+			if bash_toml.is.whitespace "$char"; then
+				:
+			elif bash_toml.is.newline "$char"; then
+				mode='MODE_DEFAULT'
+			elif bash_toml.is.empty "$char"; then
+				mode='MODE_DEFAULT'
+			else
+				bash_toml.die "Newline expected"
+				return 1
+			fi
+			;;
 		esac
 	done
 
@@ -127,16 +129,16 @@ bash_toml.do_parse() {
 		# i.g. ``
 		:
 		;;
-	BEFORE_SOME_VALUE)
+	MODE_ANY_BEFORE_VALUE)
 		bash_toml.die "Key name found without value theta"
 		return 1
 		;;
-	DURING_BARE_KEY)
+	MODE_BAREKEY_DURING_KEY)
 		#  i.g. `keyName`
 		bash_toml.die "Key name found without value"
 		return 1
 		;;
-	BEFORE_KEY_EQUALS)
+	MODE_EQUALS_BEFORE)
 		;;
 	esac
 
