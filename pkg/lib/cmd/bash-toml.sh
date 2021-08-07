@@ -7,7 +7,7 @@ done
 
 bash-toml() {
 	# shellcheck disable=SC1007
-	local setPipefail= setGlobasciiranges=
+	local setPipefail= setGlobasciiranges= oldLcAll=
 
 	if [ -o pipefail ]; then
 		setPipefail='yes'
@@ -20,6 +20,9 @@ bash-toml() {
 	else
 		setGlobasciiranges='no'
 	fi
+
+	oldLcAll="$LC_ALL"
+	LC_ALL="en_US.UTF-8"
 
 	for arg; do
 		case "$arg" in
@@ -46,4 +49,6 @@ bash-toml() {
 	else
 		shopt -u globasciiranges
 	fi
+
+	LC_ALL="$oldLcAll"
 }

@@ -1,8 +1,10 @@
 # shellcheck shell=bash
 
 declare -gA BASH_TOML_ERRORS=(
+	[INTERNAL_ERROR]='Internal error'
 	[NOT_IMPLEMENTED]='TOML feature has not been implemented'
 	[UNEXPECTED_BRANCH]='This branch was not supposed to be activated. Please submit an issue'
+	[UNICODE_INVALID]='The resulting unicode code point was invalid'
 	[KEY_ABSENT]='Key does not have a value'
 	[UNEXPECTED_EOF]='Unexpected end of line'
 	[UNEXPECTED_CHARACTER]='An unexpected character was encountered' # Generalization of any of the following errors
@@ -44,7 +46,7 @@ bash_toml.parse_fail() {
   -> code: %s
   -> message: %s
   -> context: %s
-  -> history:' "$error_key" "$error_message" "$error_context"
+  -> trace:' "$error_key" "$error_message" "$error_context"
 
 	for history_item in "${BASH_TOKEN_HISTORY[@]}"; do
 		printf -v error_output '%s\n    - %s' "$error_output" "$history_item"

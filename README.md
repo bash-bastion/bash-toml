@@ -38,6 +38,8 @@ Error: Could not finish single quote string, etc.
 
 If you want to have more fine-grained control over your error handling
 
+- Note that this does not currently mask error output to stdin that builtins may emit when erroring
+
 
 ```bash
 # file.sh
@@ -59,3 +61,9 @@ fi
 ```bash
 $ ./file.sh # => exitCode 0
 ```
+
+## Caveats
+
+- When parsing literal strings, i think actual literal control characters are not taken into account
+- When parsing basic strings, any control characters that appear will show error "EOF" rather than one specific to control characters
+  - this is generally true since no differentiation between a newline and EOF

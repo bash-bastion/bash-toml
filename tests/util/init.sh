@@ -9,9 +9,9 @@ source bpm-load
 bpm-load 'ztombol/bats-support'
 bpm-load 'ztombol/bats-assert'
 
-export LANG="C"
-export LANGUAGE="C"
-export LC_ALL="C"
+export LANG="en_US.UTF-8"
+export LANGUAGE="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
 
 export DEBUG=
 export TEST_MODE=

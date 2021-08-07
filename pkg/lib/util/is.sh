@@ -17,7 +17,7 @@ bash_toml.is.newline() {
 }
 
 bash_toml.is.table() {
-	if [[ "$1" == '[' ]]; then
+	if [[ "$1" == \[ ]]; then
 		return 0
 	else
 		return 1
@@ -25,7 +25,7 @@ bash_toml.is.table() {
 }
 
 bash_toml.is.double_quote() {
-	if [[ "$1" == '"' ]]; then
+	if [[ "$1" == \" ]]; then
 		return 0
 	else
 		return 1
@@ -33,7 +33,34 @@ bash_toml.is.double_quote() {
 }
 
 bash_toml.is.single_quote() {
-	if [[ "$1" == "'" ]]; then
+	if [[ "$1" == \' ]]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+bash_toml.is.backslash() {
+	# shellcheck disable=SC1003
+	if [[ "$1" == \\ ]]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+bash_toml.is.control_character() {
+	# shellcheck disable=SC1003
+	if [[ "$1" == [[:cntrl:]] ]]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+bash_toml.is.hex_digit() {
+	# shellcheck disable=SC1003
+	if [[ "$1" == [[:xdigit:]] ]]; then
 		return 0
 	else
 		return 1

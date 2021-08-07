@@ -49,8 +49,6 @@ bash_toml.do_parse() {
 				bash_toml.parse_fail 'KEY_ABSENT' "Key name found without value 2"
 				return 1
 			elif bash_toml.is.double_quote "$char"; then
-				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Double quote values are not supported"
-				return 1
 				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
 				bash_toml.init_value_string
 			elif bash_toml.is.single_quote "$char"; then
@@ -110,8 +108,107 @@ bash_toml.do_parse() {
 			;;
 		# directly after the `"`
 		MODE_DOUBLEQUOTE_DURING_VALUE)
+			if bash_toml.is.double_quote "$char"; then
+				mode='MODE_ANY_AFTER_VALUE'
+			elif bash_toml.is.backslash "$char"; then
+				mode='MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE'
+			elif bash_toml.is.control_character "$char"; then
+				# TODO: this code path won't get activated
+				:
+			elif bash_toml.is.empty "$char"; then
+				bash_toml.parse_fail 'UNEXPECTED_EOF' "Must complete the basic string with a double quote"
+				return 1
+			else
+				bash_toml.append_value_string "$char"
+			fi
+			;;
+		# directly after any `\`
+		MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE)
+			if [ "$char" = b ]; then
+				bash_toml.append_value_string $'\b'
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+			elif [ "$char" = t ]; then
+				bash_toml.append_value_string $'\t'
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+			elif [ "$char" = n ]; then
+				bash_toml.append_value_string $'\n'
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+			elif [ "$char" = f ]; then
+				bash_toml.append_value_string $'\f'
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+			elif [ "$char" = r ]; then
+				bash_toml.append_value_string $'\u000D'
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+			elif [ "$char" = \" ]; then
+				bash_toml.append_value_string \"
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+			elif [ "$char" = \\ ]; then
+				bash_toml.append_value_string \\
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+			elif [ "$char" = u ]; then
+				local -i unicode_n_total_digits=4
+				mode='MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE_UNICODE_START'
+			elif [ "$char" = U ]; then
+				local -i unicode_n_total_digits=8
+				mode='MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE_UNICODE_START'
+			else
+				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Encountered character '$char', which does not produce a valid escape sequence"
+				return 1
+			fi
+			;;
+		MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE_UNICODE_START)
+			local -i unicode_nth_digit=1
+			local unicode_code_point=
+			if bash_toml.is.hex_digit "$char"; then
+				unicode_code_point+="$char"
+				mode='MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE_UNICODE_DURING'
+			else
+				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Encountered character '$char', which is not a valid hex digit as part of a unicode scalar value"
+				return 1
+			fi
+			;;
+		MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE_UNICODE_DURING)
+			unicode_nth_digit=$((unicode_nth_digit+1))
+			if bash_toml.is.hex_digit "$char"; then
+				unicode_code_point+="$char"
+			else
+				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Encountered character '$char', which is not a valid hex digit as part of a unicode scalar value"
+				return 1
+			fi
 
-			# bash_toml.append_value_string "$char"
+			if ((unicode_nth_digit == unicode_n_total_digits)); then
+				local unicode_scalar_value=
+
+				if ! printf -v unicode_scalar_value_decimal '%d' "0x$unicode_code_point"; then
+					bash_toml.parse_fail 'UNICODE_INVALID' "Could not convert the unicode code point from a hexidecimal to decimal value"
+					return 1
+				fi
+
+				# Fine since we check for 'bash_toml.is.hex_digit' for each digit
+				# shellcheck disable=SC2059
+				if (( unicode_n_total_digits == 4)); then
+					if ! printf -v unicode_scalar_value "\u$unicode_code_point"; then
+						bash_toml.parse_fail 'UNICODE_INVALID' "Could not convert the unicode code point to a unicode scalar value"
+						return 1
+					fi
+				elif (( unicode_n_total_digits == 8)); then
+					if ! printf -v unicode_scalar_value "\U$unicode_code_point"; then
+						bash_toml.parse_fail 'UNICODE_INVALID' "Could not convert the unicode code point to a unicode scalar value"
+						return 1
+					fi
+				fi
+
+				# https://unicode.org/glossary/#unicode_scalar_value
+				if ((unicode_scalar_value_decimal >= 16#0 && unicode_scalar_value_decimal <= 16#D7FF)) \
+						|| ((unicode_scalar_value_decimal >= 16#E000 && unicode_scalar_value_decimal <= 16#10FFFF)); then
+					bash_toml.append_value_string "$unicode_scalar_value"
+				else
+					bash_toml.parse_fail 'UNICODE_INVALID' "The unicode code point is not a valid unicode scalar value"
+				fi
+
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+				unset unicode_n_total_digits
+			fi
 			;;
 		# directly after the `'`
 		MODE_SINGLEQUOTE_DURING_VALUE)
@@ -121,7 +218,7 @@ bash_toml.do_parse() {
 				bash_toml.parse_fail 'VALUE_STRING_INVALID' "Newlines are not valid in single quote"
 				return 1
 			elif bash_toml.is.empty "$char"; then
-				bash_toml.parse_fail 'UNEXPECTED_EOF' "Must complete the single quote string"
+				bash_toml.parse_fail 'UNEXPECTED_EOF' "Must complete the literal string with a single quote"
 				return 1
 			else
 				bash_toml.append_value_string "$char"
