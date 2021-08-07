@@ -2,7 +2,7 @@
 
 bash_toml.do_parse() {
 	TOML_ERROR=
-	TOML_MANUAL_ERROR='no'
+	: "${TOML_MANUAL_ERROR:='no'}"
 
 	declare char=
 	declare mode='MODE_DEFAULT'
