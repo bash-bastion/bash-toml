@@ -30,8 +30,8 @@ bash_toml.do_parse() {
 				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Tables are not supported"
 				return 1
 			elif bash_toml.is.double_quote "$char"; then
-				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Quoted keys are not supported"
-				return 1
+				bash_toml.init_key_string ''
+				mode='MODE_QUOTEDKEY_DURING_KEY'
 			elif bash_toml.is.valid_bare_key_char "$char"; then
 				bash_toml.init_key_string "$char"
 				mode="MODE_BAREKEY_DURING_KEY"
@@ -57,7 +57,7 @@ bash_toml.do_parse() {
 				mode='MODE_SINGLEQUOTE_DURING_VALUE'
 				bash_toml.init_value_string
 			elif bash_toml.is.empty "$char"; then
-				bash_toml.parse_fail 'VALUE_STRING_INVALID'
+				bash_toml.parse_fail 'UNEXPECTED_EOF' 'Expected to find value on the same line'
 				return 1
 			else
 				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Datetime, Boolean, Float, Integer, Array, Inline Table, etc. etc. Are not supported"
@@ -82,11 +82,26 @@ bash_toml.do_parse() {
 				return 1
 			fi
 			;;
+		MODE_QUOTEDKEY_DURING_KEY)
+			if bash_toml.is.double_quote "$char"; then
+				mode="MODE_EQUALS_BEFORE"
+			elif bash_toml.is.newline "$char"; then
+				bash_toml.parse_fail 'KEY_INVALID' 'Quoted key was not finished on the same line'
+				return 1
+			elif bash_toml.is.empty "$char"; then
+				bash_toml.parse_fail 'KEY_INVALID' 'Quoted key was not finished on the same line'
+				return 1
+			else
+				:
+			fi
+			;;
 		MODE_EQUALS_BEFORE)
-			if bash_toml.is.equals_sign "$char"; then
+			if bash_toml.is.whitespace "$char"; then
+				:
+			elif bash_toml.is.equals_sign "$char"; then
 				mode="MODE_ANY_BEFORE_VALUE"
 			elif bash_toml.is.empty "$char"; then
-				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "No equals sign found. End of file reached"
+				bash_toml.parse_fail 'UNEXPECTED_EOF' "No equals sign found"
 				return 1
 			else
 				bash_toml.parse_fail 'KEY_INVALID'
@@ -104,6 +119,9 @@ bash_toml.do_parse() {
 				mode='MODE_ANY_AFTER_VALUE'
 			elif bash_toml.is.newline "$char"; then
 				bash_toml.parse_fail 'VALUE_STRING_INVALID' "Newlines are not valid in single quote"
+				return 1
+			elif bash_toml.is.empty "$char"; then
+				bash_toml.parse_fail 'UNEXPECTED_EOF' "Must complete the single quote string"
 				return 1
 			else
 				bash_toml.append_value_string "$char"

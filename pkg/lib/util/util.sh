@@ -4,10 +4,11 @@ declare -gA BASH_TOML_ERRORS=(
 	[NOT_IMPLEMENTED]='TOML feature has not been implemented'
 	[UNEXPECTED_BRANCH]='This branch was not supposed to be activated. Please submit an issue'
 	[KEY_ABSENT]='Key does not have a value'
+	[UNEXPECTED_EOF]='Unexpected end of line'
 	[UNEXPECTED_CHARACTER]='An unexpected character was encountered' # Generalization of any of the following errors
 	[KEY_INVALID]='The key is not valid'
 	[VALUE_INVALID]='The value could not be parsed'
-	[VALUE_STRING_INVALID]='The value was not valid'
+	[VALUE_STRING_INVALID]='The string value could not be parsed'
 )
 
 declare -a BASH_TOKEN_HISTORY=()

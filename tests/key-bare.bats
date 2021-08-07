@@ -28,3 +28,20 @@ load './util/init.sh'
 	assert_failure
 	assert_output -p 'UNEXPECTED_CHARACTER'
 }
+
+@test "fails on invalid bare key 4" {
+	run bash_toml.do_parse <<-"EOF"
+	fox=
+	EOF
+
+	assert_failure
+	assert_output -p 'UNEXPECTED_EOF'
+}
+
+@test "succeeds on valid key 1" {
+	bash_toml.do_parse <<-"EOF"
+	fox = 'value'
+	EOF
+
+	test_util.toml.has_key 'fox'
+}
