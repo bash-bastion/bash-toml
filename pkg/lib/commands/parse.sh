@@ -252,24 +252,6 @@ bash_toml.do_parse() {
 		esac
 	done
 
-	case "$mode" in
-	MODE_DEFAULT)
-		# i.g. ``
-		:
-		;;
-	MODE_ANY_BEFORE_VALUE)
-		bash_toml.parse_fail 'UNEXPECTED_BRANCH' "Key name found without value theta"
-		return 1
-		;;
-	MODE_BAREKEY_DURING_KEY)
-		#  i.g. `keyName`
-		bash_toml.parse_fail 'UNEXPECTED_BRANCH' "Key name found without value"
-		return 1
-		;;
-	MODE_EQUALS_BEFORE)
-		;;
-	esac
-
 	# If we try to set an empty key with a value, then later on,
 	# we can access any value (using a non-integer key), and we
 	# will get a result that equals the original value value
