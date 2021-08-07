@@ -91,11 +91,3 @@ bash_toml.is.equals_sign() {
 		return 1
 	fi
 }
-
-bash_toml.is.empty() {
-	if [[ "$1" == '' ]]; then
-		return 0
-	else
-		return 1
-	fi
-}

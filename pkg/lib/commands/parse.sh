@@ -22,50 +22,42 @@ bash_toml.do_parse() {
 		case "$mode" in
 		# State in which parser starts, and before any given TOML construct
 		MODE_DEFAULT)
-			if bash_toml.is.whitespace "$char"; then
-				:
-			elif bash_toml.is.newline "$char"; then
-				:
-			elif bash_toml.is.octothorp "$char"; then
+			if bash_toml.is.octothorp "$char"; then
 				mode='MODE_IN_COMMENT'
-			elif bash_toml.is.table "$char"; then
-				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Tables are not supported"
-				return 1
+
 			elif bash_toml.is.double_quote "$char"; then
 				bash_toml.init_key_string ''
 				mode='MODE_QUOTEDKEY_DURING_KEY'
+
 			elif bash_toml.is.valid_bare_key_char "$char"; then
 				bash_toml.init_key_string "$char"
 				mode="MODE_BAREKEY_DURING_KEY"
-			else
-				# If after only gobbling up whitespace, and there is nothign left,
-				# we are done
-				return 0
+
+			elif bash_toml.is.table "$char"; then
+				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Tables are not supported"
+				return 1
 			fi
 			;;
 		MODE_IN_COMMENT)
 			if bash_toml.is.newline "$char"; then
 				mode='MODE_DEFAULT'
-			elif bash_toml.is.empty "$char"; then
-				mode='MODE_DEFAULT'
-			else
-				:
 			fi
 			;;
 		MODE_ANY_BEFORE_VALUE)
 			if bash_toml.is.whitespace "$char"; then
 				:
-			elif bash_toml.is.double_quote "$char"; then
-				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
-				bash_toml.init_value_string
+
 			elif bash_toml.is.single_quote "$char"; then
 				mode='MODE_SINGLEQUOTE_DURING_VALUE'
 				bash_toml.init_value_string
+
+			elif bash_toml.is.double_quote "$char"; then
+				mode='MODE_DOUBLEQUOTE_DURING_VALUE'
+				bash_toml.init_value_string
+
 			elif bash_toml.is.newline "$char"; then
 				bash_toml.parse_fail 'UNEXPECTED_NEWLINE' 'Expected to find value on the same line'
-			elif bash_toml.is.empty "$char"; then
-				bash_toml.parse_fail 'UNEXPECTED_EOF' 'Expected to find value on the same line'
-				return 1
+
 			else
 				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Construct is not valid or not yet implemented"
 				return 1
@@ -74,16 +66,17 @@ bash_toml.do_parse() {
 		MODE_BAREKEY_DURING_KEY)
 			if bash_toml.is.whitespace "$char"; then
 				mode="MODE_EQUALS_BEFORE"
+
 			elif bash_toml.is.equals_sign "$char"; then
 				mode='MODE_ANY_BEFORE_VALUE'
+
 			elif bash_toml.is.newline "$char"; then
-				bash_toml.parse_fail 'KEY_INVALID' "Key name found without value"
+				bash_toml.parse_fail 'KEY_INVALID' "Key does not have a value"
 				return 1
+
 			elif bash_toml.is.valid_bare_key_char "$char"; then
 				bash_toml.append_key_string "$char"
-			elif bash_toml.is.empty "$char"; then
-				bash_toml.parse_fail 'KEY_INVALID'
-				return 1
+
 			else
 				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Char '$char' is not valid in toml bare keys"
 				return 1
@@ -92,12 +85,11 @@ bash_toml.do_parse() {
 		MODE_QUOTEDKEY_DURING_KEY)
 			if bash_toml.is.double_quote "$char"; then
 				mode="MODE_EQUALS_BEFORE"
+
 			elif bash_toml.is.newline "$char"; then
-				bash_toml.parse_fail 'KEY_INVALID' 'Quoted key was not finished on the same line'
+				bash_toml.parse_fail 'KEY_INVALID' 'Key does not have a value'
 				return 1
-			elif bash_toml.is.empty "$char"; then
-				bash_toml.parse_fail 'KEY_INVALID' 'Quoted key was not finished on the same line'
-				return 1
+
 			else
 				bash_toml.append_key_string "$char"
 			fi
@@ -105,11 +97,10 @@ bash_toml.do_parse() {
 		MODE_EQUALS_BEFORE)
 			if bash_toml.is.whitespace "$char"; then
 				:
+
 			elif bash_toml.is.equals_sign "$char"; then
 				mode="MODE_ANY_BEFORE_VALUE"
-			elif bash_toml.is.empty "$char"; then
-				bash_toml.parse_fail 'UNEXPECTED_EOF' "No equals sign found"
-				return 1
+
 			else
 				bash_toml.parse_fail 'KEY_INVALID'
 				return 1
@@ -119,11 +110,14 @@ bash_toml.do_parse() {
 		MODE_DOUBLEQUOTE_DURING_VALUE)
 			if bash_toml.is.double_quote "$char"; then
 				mode='MODE_DEFAULT_END'
+
 			elif bash_toml.is.backslash "$char"; then
 				mode='MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE'
+
 			elif bash_toml.is.newline "$char"; then
 				bash_toml.parse_fail 'UNEXPECTED_NEWLINE' "Literal newlines must not be present in double quotes"
 				return 1
+
 			elif bash_toml.is.control_character "$char"; then
 				# TODO: this code path won't get activated
 				:
@@ -168,9 +162,11 @@ bash_toml.do_parse() {
 		MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE_UNICODE_START)
 			local -i unicode_nth_digit=1
 			local unicode_code_point=
+
 			if bash_toml.is.hex_digit "$char"; then
 				unicode_code_point+="$char"
 				mode='MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE_UNICODE_DURING'
+
 			else
 				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Encountered character '$char', which is not a valid hex digit as part of a unicode scalar value"
 				return 1
@@ -178,8 +174,10 @@ bash_toml.do_parse() {
 			;;
 		MODE_DOUBLEQUOTE_DURING_ESCAPE_SEQUENCE_UNICODE_DURING)
 			unicode_nth_digit=$((unicode_nth_digit+1))
+
 			if bash_toml.is.hex_digit "$char"; then
 				unicode_code_point+="$char"
+
 			else
 				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Encountered character '$char', which is not a valid hex digit as part of a unicode scalar value"
 				return 1
@@ -223,12 +221,11 @@ bash_toml.do_parse() {
 		MODE_SINGLEQUOTE_DURING_VALUE)
 			if bash_toml.is.single_quote "$char"; then
 				mode='MODE_DEFAULT_END'
+
 			elif bash_toml.is.newline "$char"; then
 				bash_toml.parse_fail 'UNEXPECTED_NEWLINE' "Newlines are not valid in single quote"
 				return 1
-			elif bash_toml.is.empty "$char"; then
-				bash_toml.parse_fail 'UNEXPECTED_EOF' "Must complete the literal string with a single quote"
-				return 1
+
 			else
 				bash_toml.append_value_string "$char"
 			fi
@@ -236,12 +233,13 @@ bash_toml.do_parse() {
 		MODE_DEFAULT_END)
 			if bash_toml.is.whitespace "$char"; then
 				:
+
 			elif bash_toml.is.newline "$char"; then
 				mode='MODE_DEFAULT'
-			elif bash_toml.is.empty "$char"; then
-				mode='MODE_DEFAULT'
+
 			elif bash_toml.is.octothorp "$char"; then
 				mode='MODE_IN_COMMENT'
+
 			else
 				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Encountered character '$char' when a newline was expected"
 				return 1
@@ -251,13 +249,14 @@ bash_toml.do_parse() {
 	done
 
 	case "$mode" in
-		MODE_DEFAULT|MODE_DEFAULT_END)
+		MODE_DEFAULT|MODE_IN_COMMENT|MODE_DEFAULT_END)
 			;;
 		*)
 			bash_toml.parse_fail 'UNEXPECTED_EOF' 'Did not finish parsing construct'
 			return 1
 			;;
 	esac
+
 	# If we try to set an empty key with a value, then later on,
 	# we can access any value (using a non-integer key), and we
 	# will get a result that equals the original value value
