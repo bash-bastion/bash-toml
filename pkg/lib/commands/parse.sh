@@ -6,7 +6,7 @@ bash_toml.do_parse() {
 
 	declare char=
 	declare mode='MODE_DEFAULT'
-	declare -i PARSER_LINE_NUMBER=0
+	declare -i PARSER_LINE_NUMBER=1
 	declare -i PARSER_COLUMN_NUMBER=0
 
 	while IFS= read -rn 1 char; do
@@ -78,7 +78,7 @@ bash_toml.do_parse() {
 				bash_toml.parse_fail 'KEY_INVALID'
 				return 1
 			else
-				bash_toml.parse_fail 'UNEXPECTED_BRANCH'
+				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Char '$char' is not valid in toml bare keys"
 				return 1
 			fi
 			;;

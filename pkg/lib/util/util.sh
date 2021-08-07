@@ -10,14 +10,14 @@ declare -gA BASH_TOML_ERRORS=(
 	[VALUE_STRING_INVALID]='The value was not valid'
 )
 
-declare -a token_history=()
+declare -a BASH_TOKEN_HISTORY=()
 
 # @description Appends to token history for improved error insight
 bash_toml.token_history_add() {
 	local str=
-	printf -v str '%s\n' "$mode ($char) at $PARSER_LINE_NUMBER:$PARSER_COLUMN_NUMBER"
+	printf -v str '%s' "$mode ($char) at $PARSER_LINE_NUMBER:$PARSER_COLUMN_NUMBER"
 
-	token_history+=("$str")
+	BASH_TOKEN_HISTORY+=("$str")
 
 	if [ -n "${DEBUG_BASH_TOML+x}" ]; then
 		if [ -n "${BATS_RUN_TMPDIR+x}" ]; then
@@ -32,6 +32,10 @@ bash_toml.parse_fail() {
 	local error_key="$1"
 	local error_context="$2"
 
+	if [ -z "$error_context" ]; then
+		error_context="<empty>"
+	fi
+
 	local error_message="${BASH_TOML_ERRORS["$error_key"]}"
 
 	local error_output=
@@ -41,8 +45,8 @@ bash_toml.parse_fail() {
   -> context: %s
   -> history:' "$error_key" "$error_message" "$error_context"
 
-	for history_item in "${token_history[@]}"; do
-		printf -v error_output '%s\n    - %s\n' "$error_output" "$history_item"
+	for history_item in "${BASH_TOKEN_HISTORY[@]}"; do
+		printf -v error_output '%s\n    - %s' "$error_output" "$history_item"
 	done
 
 	if [ "$TOML_MANUAL_ERROR" = yes ]; then
