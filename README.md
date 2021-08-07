@@ -1,6 +1,6 @@
 # bash-toml
 
-Toml v0.4.0 parser written in pure Bash
+Aspiring Toml v1.0.0 parser written in pure Bash
 
 STATUS: EXPERIMENTAL
 
@@ -14,6 +14,31 @@ EOF
 
 printf '%s' "${TOML[five]}" # value
 ```
+
+## Support
+
+Support is generally limited at the moment
+
+- Construct: Comment
+- Construct: Key
+- Value: String (basic)
+- Value: String (literal)
+
+### Not Yet Supported
+
+- Value: String (multi-line basic)
+- Value: String (multi-line literal)
+- Value: Integer
+- Value: Float
+- Value: Boolean
+- Value: Offset Date-Time
+- Value: Local Date-Time
+- Value: Local Date
+- Value: Local Time
+- Value: Array
+- Value: Inline Table
+- Construct: Table
+- Construct Array of Tables
 
 ## Error Handling
 
