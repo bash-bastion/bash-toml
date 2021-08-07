@@ -26,6 +26,8 @@ bash_toml.do_parse() {
 				:
 			elif bash_toml.is.newline "$char"; then
 				:
+			elif bash_toml.is.octothorp "$char"; then
+				mode='MODE_IN_COMMENT'
 			elif bash_toml.is.table "$char"; then
 				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Tables are not supported"
 				return 1
@@ -39,6 +41,15 @@ bash_toml.do_parse() {
 				# If after only gobbling up whitespace, and there is nothign left,
 				# we are done
 				return 0
+			fi
+			;;
+		MODE_IN_COMMENT)
+			if bash_toml.is.newline "$char"; then
+				mode='MODE_DEFAULT'
+			elif bash_toml.is.empty "$char"; then
+				mode='MODE_DEFAULT'
+			else
+				:
 			fi
 			;;
 		MODE_ANY_BEFORE_VALUE)
@@ -58,7 +69,7 @@ bash_toml.do_parse() {
 				bash_toml.parse_fail 'UNEXPECTED_EOF' 'Expected to find value on the same line'
 				return 1
 			else
-				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Datetime, Boolean, Float, Integer, Array, Inline Table, etc. etc. Are not supported"
+				bash_toml.parse_fail 'NOT_IMPLEMENTED' "Construct is not valid or not yet implemented"
 				return 1
 			fi
 			;;
@@ -231,6 +242,8 @@ bash_toml.do_parse() {
 				mode='MODE_DEFAULT'
 			elif bash_toml.is.empty "$char"; then
 				mode='MODE_DEFAULT'
+			elif bash_toml.is.octothorp "$char"; then
+				mode='MODE_IN_COMMENT'
 			else
 				bash_toml.parse_fail 'UNEXPECTED_CHARACTER' "Encountered character '$char' when a newline was expected"
 				return 1

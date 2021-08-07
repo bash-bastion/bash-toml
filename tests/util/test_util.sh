@@ -16,6 +16,7 @@ test_util.toml.key_has_value() {
 	fi
 }
 
+# TODO: Doesn't work when '$2' is 'key'?
 test_util.object_has_key() {
 	local obj_name="$1"
 	local key="$2"

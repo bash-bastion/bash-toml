@@ -67,6 +67,15 @@ bash_toml.is.hex_digit() {
 	fi
 }
 
+bash_toml.is.octothorp() {
+	# shellcheck disable=SC1003
+	if [[ "$1" == \# ]]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
 bash_toml.is.valid_bare_key_char() {
 	if [[ "$1" == [A-Za-z0-9_-] ]]; then
 		return 0
