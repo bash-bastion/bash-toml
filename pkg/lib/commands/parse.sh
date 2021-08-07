@@ -101,7 +101,7 @@ bash_toml.do_parse() {
 				bash_toml.parse_fail 'KEY_INVALID' 'Quoted key was not finished on the same line'
 				return 1
 			else
-				:
+				bash_toml.append_key_string "$char"
 			fi
 			;;
 		MODE_EQUALS_BEFORE)
@@ -270,5 +270,10 @@ bash_toml.do_parse() {
 		;;
 	esac
 
-	TOML["$BASH_TOML_KEY_STRING"]="$BASH_TOML_KEY_VALUE_STRING"
+	# If we try to set an empty key with a value, then later on,
+	# we can access any value (using a non-integer key), and we
+	# will get a result that equals the original value value
+	if [ -n "$BASH_TOML_KEY_STRING" ]; then
+		TOML["$BASH_TOML_KEY_STRING"]="$BASH_TOML_KEY_VALUE_STRING"
+	fi
 }

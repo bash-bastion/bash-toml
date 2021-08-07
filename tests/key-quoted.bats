@@ -58,3 +58,12 @@ load './util/init.sh'
 	assert test_util.toml.has_key 'fox'
 	assert test_util.toml.key_has_value 'fox' 'UwU'
 }
+
+@test "succeeds on valid quoted key 3" {
+	bash_toml.do_parse <<-"EOF"
+	"123" = 'UwU'
+	EOF
+
+	assert test_util.toml.has_key '123'
+	assert test_util.toml.key_has_value '123' 'UwU'
+}

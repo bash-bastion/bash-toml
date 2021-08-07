@@ -26,6 +26,7 @@ for f in "$ROOT_DIR"/pkg/lib/{commands,util}/?*.sh; do
 done
 
 setup() {
+	unset TOML
 	cd "$BATS_TEST_TMPDIR"
 }
 

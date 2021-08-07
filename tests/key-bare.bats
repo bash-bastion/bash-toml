@@ -46,3 +46,12 @@ load './util/init.sh'
 	assert test_util.toml.has_key 'fox'
 	assert test_util.toml.key_has_value 'fox' 'value'
 }
+
+@test "succeeds on valid bare key 2" {
+	bash_toml.do_parse <<-"EOF"
+	123 = 'value'
+	EOF
+
+	assert test_util.toml.has_key '123'
+	assert test_util.toml.key_has_value '123' 'value'
+}
