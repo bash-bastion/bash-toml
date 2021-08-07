@@ -4,9 +4,10 @@ set -ETeo pipefail
 shopt -s nullglob extglob globasciiranges
 
 load './util/test_util.sh'
-# TODO: remove stderr shell redirection
-source "$(bpm package-path 'ztombol/bats-support' 2>/dev/null)/load.bash"
-source "$(bpm package-path 'ztombol/bats-assert' 2>/dev/null)/load.bash"
+
+source bpm-load
+bpm-load 'ztombol/bats-support'
+bpm-load 'ztombol/bats-assert'
 
 export LANG="C"
 export LANGUAGE="C"
