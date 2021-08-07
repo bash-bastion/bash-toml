@@ -1,9 +1,7 @@
 # shellcheck shell=bash
 
-# TODO: expand to parse_fail
-
 file='./pkg/lib/cmd/bash-toml.sh'
-grep -n -B0 -A1 -e 'bash_toml.die' "$file" \
+grep -n -B0 -A1 -e 'bash_toml.parse_fail' "$file" \
 	| grep -vP '(^[0-9]*:|^--$)' \
 	| awk '
 	BEGIN {

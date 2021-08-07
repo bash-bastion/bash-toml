@@ -1,70 +1,55 @@
 # shellcheck shell=bash
 
-declare -gA errors=(
-	[NOT_IMPLEMENTED]='The feature has not been implemented'
-	[UNEXPECTED_BRANCH]='Unaccounted value'
-	[INCOMPLETE_KEY]='The key could not completely be parsed'
-	[INVALID_KEY]='The key is not valid'
-	[INCOMPLETE_VALUE_ANY]='The key did not have a proper value'
+declare -gA BASH_TOML_ERRORS=(
+	[NOT_IMPLEMENTED]='TOML feature has not been implemented'
+	[UNEXPECTED_BRANCH]='This branch was not supposed to be activated. Please submit an issue'
+	[KEY_ABSENT]='Key does not have a value'
+	[UNEXPECTED_CHARACTER]='An unexpected character was encountered' # Generalization of any of the following errors
+	[KEY_INVALID]='The key is not valid'
+	[VALUE_INVALID]='The value could not be parsed'
+	[VALUE_STRING_INVALID]='The value was not valid'
 )
 
-bash_toml.debug() {
-	if [ -n "${DEBUG+x}" ]; then
-		printf '%s\n' "$mode ($char) at $PARSER_LINE_NUMBER:$PARSER_COLUMN_NUMBER"
-	fi
-}
+declare -a token_history=()
 
-bash_toml.die() {
-	bash_toml.debug >&3
-	cat <<-EOF
+# @description Appends to token history for improved error insight
+bash_toml.token_history_add() {
+	local str=
+	printf -v str '%s\n' "$mode ($char) at $PARSER_LINE_NUMBER:$PARSER_COLUMN_NUMBER"
 
-		char: $char
-		mode: $mode
-	EOF
+	token_history+=("$str")
 
-	if [ "$TOML_MANUAL_ERROR" = yes ]; then
-		TOML_ERROR="$1"
-		return 1
-	else
-		if [[ -n "${NO_COLOR+x}" || $TERM = dumb ]]; then
-			printf '%s\n' "Fatal: $1"
+	if [ -n "${DEBUG_BASH_TOML+x}" ]; then
+		if [ -n "${BATS_RUN_TMPDIR+x}" ]; then
+			printf '%s\n' "$str" >&3
 		else
-			printf '\033[0;31m%s\033[0m\n' "Fatal: $1"
+			printf '%s\n' "$str"
 		fi
-		exit 1
 	fi
 }
-
-
 
 bash_toml.parse_fail() {
-	bash_toml.debug >&3
-	cat <<-EOF
-
-		char: $char
-		mode: $mode
-	EOF
-
 	local error_key="$1"
 	local error_context="$2"
 
-	local error_message="${errors[$error_key]}"
+	local error_message="${BASH_TOML_ERRORS["$error_key"]}"
 
-	printf -v error_output 'Failed to parse toml:\n  -> code: %s\n  -> message: %s\n  -> context: %s' "$error_key" "$error_message" "$error_context"
+	local error_output=
+	printf -v error_output 'Failed to parse toml:
+  -> code: %s
+  -> message: %s
+  -> context: %s
+  -> history:' "$error_key" "$error_message" "$error_context"
+
+	for history_item in "${token_history[@]}"; do
+		printf -v error_output '%s\n    - %s\n' "$error_output" "$history_item"
+	done
 
 	if [ "$TOML_MANUAL_ERROR" = yes ]; then
 		TOML_ERROR="$error_output"
 		return 1
 	else
 		printf '%s' "$error_output"
-		# if [[ -n "${NO_COLOR+x}" || $TERM = dumb ]]; then
-		# 	printf '%s\n' "Fatal: $1"
-		# else
-		# 	printf '\033[0;31m%s\033[0m\n' "Fatal: $1"
-		# fi
 		exit 1
 	fi
-
-
-
 }

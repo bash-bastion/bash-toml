@@ -8,7 +8,7 @@ load './util/init.sh'
 	EOF
 
 	assert_failure
-	assert_output -p 'INCOMPLETE_KEY'
+	assert_output -p 'KEY_INVALID'
 }
 
 @test "fails on incomplete key 2" {
@@ -17,7 +17,7 @@ load './util/init.sh'
 	EOF
 
 	assert_failure
-	assert_output -p 'INVALID_KEY'
+	assert_output -p 'KEY_INVALID'
 }
 
 @test "fails on incomplete key 3" {
@@ -26,5 +26,5 @@ load './util/init.sh'
 	EOF
 
 	assert_failure
-	assert_output -p 'INCOMPLETE_VALUE_ANY'
+	assert_output -p 'VALUE_STRING_INVALID'
 }
