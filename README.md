@@ -1,8 +1,10 @@
 # bash-toml
 
-Aspiring Toml v1.0.0 parser written in pure Bash
+Kickass toml parser written in pure BASH. Made possible by [bash-object](https://github.com/hyperupcall/bash-object)
 
 STATUS: EXPERIMENTAL
+
+The plan is to fully support TOML v1.0.0
 
 ## Usage
 
