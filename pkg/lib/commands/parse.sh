@@ -2,7 +2,7 @@
 
 bash_toml.do_parse() {
 	TOML_ERROR=
-	: "${TOML_MANUAL_ERROR:='no'}"
+	: "${TOML_MANUAL_ERROR:=no}"
 
 	declare char=
 	declare mode='MODE_DEFAULT'
@@ -259,7 +259,8 @@ bash_toml.do_parse() {
 
 	# If we try to set an empty key with a value, then later on,
 	# we can access any value (using a non-integer key), and we
-	# will get a result that equals the original value value
+	# will get a result that equals the original value value. So we check
+	# to make sure we are not setting an empty key
 	if [ -n "$BASH_TOML_KEY_STRING" ]; then
 		TOML["$BASH_TOML_KEY_STRING"]="$BASH_TOML_KEY_VALUE_STRING"
 	fi

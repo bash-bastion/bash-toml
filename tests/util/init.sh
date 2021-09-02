@@ -5,7 +5,7 @@ shopt -s nullglob extglob globasciiranges
 
 load './util/test_util.sh'
 
-source bpm-load
+source bpm-load # TODO: shouldn't need this
 bpm-load 'ztombol/bats-support'
 bpm-load 'ztombol/bats-assert'
 
