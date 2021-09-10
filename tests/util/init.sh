@@ -1,29 +1,21 @@
 # shellcheck shell=bash
 
+# TODO
 set -ETeo pipefail
 shopt -s nullglob extglob globasciiranges
 
+eval "$(basalt-package-init)"; basalt.package-init
+basalt.package-load
+
 load './util/test_util.sh'
 
-source bpm-load # TODO: shouldn't need this
-bpm-load 'ztombol/bats-support'
-bpm-load 'ztombol/bats-assert'
-
+# TODO: move to some 'preexec?'
 export LANG="en_US.UTF-8"
 export LANGUAGE="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 
 export DEBUG=
 export TEST_MODE=
-
-ROOT_DIR="$(realpath "${BASH_SOURCE[0]}")"
-ROOT_DIR="${ROOT_DIR%/*}"; ROOT_DIR="${ROOT_DIR%/*}"; ROOT_DIR="${ROOT_DIR%/*}"
-
-export PATH="$ROOT_DIR/pkg/bin:$PATH"
-for f in "$ROOT_DIR"/pkg/lib/{commands,util}/?*.sh; do
-	# shellcheck disable=SC1090
-	source "$f"
-done
 
 setup() {
 	unset TOML

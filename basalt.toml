@@ -1,0 +1,7 @@
+[package]
+name = 'bash-object'
+slug = 'bash_object'
+version = '0.1.0'
+authors = ['Edwin Kofler" <edwin@kofler.dev>']
+
+dependencies = ['hyperupcall/bash-object@v0.6.3', 'ztombol/bats-support@v0.3.0', 'ztombol/bats-assert@v0.3.0']

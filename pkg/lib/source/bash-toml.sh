@@ -1,10 +1,5 @@
 # shellcheck shell=bash
 
-for f in "$BASH_TOML_LIB_DIR"/util/?*.sh; do
-	# shellcheck disable=SC1090
-	source "$f"
-done
-
 bash-toml() {
 	# shellcheck disable=SC1007
 	local setPipefail= setGlobasciiranges= oldLcAll=
