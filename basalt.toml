@@ -3,5 +3,18 @@ name = 'bash-object'
 slug = 'bash_object'
 version = '0.1.0'
 authors = ['Edwin Kofler" <edwin@kofler.dev>']
+description = 'A kickass Toml parser written in pure Bash'
 
-dependencies = ['hyperupcall/bash-object@v0.6.3', 'ztombol/bats-support@v0.3.0', 'ztombol/bats-assert@v0.3.0']
+[run]
+dependencies = ['hyperupcall/bash-object@v0.6.3', 'https://github.com/hyperupcall/bats-common-utils.git@v3.0.0']
+sourceDirs = ['pkg/lib/commands', 'pkg/lib/public', 'pkg/lib/util']
+builtinDirs = []
+binDirs = []
+completionDirs = []
+manDirs = []
+
+[run.shellEnvironment]
+
+[run.setOptions]
+
+[run.shoptOptions]
