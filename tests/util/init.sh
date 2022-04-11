@@ -1,24 +1,13 @@
 # shellcheck shell=bash
 
-# TODO
-set -ETeo pipefail
-shopt -s nullglob extglob globasciiranges
-
-eval "$(basalt-package-init)"; basalt.package-init
+eval "$(basalt-package-init)" || exit
+basalt.package-init || exit
 basalt.package-load
+basalt.load 'github.com/hyperupcall/bats-all' 'load.bash'
 
 load './util/test_util.sh'
 
-# TODO: move to some 'preexec?'
-export LANG="en_US.UTF-8"
-export LANGUAGE="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
-
-export DEBUG=
-export TEST_MODE=
-
 setup() {
-	unset TOML
 	cd "$BATS_TEST_TMPDIR"
 }
 
