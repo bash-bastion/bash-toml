@@ -17,7 +17,7 @@ declare -gA BASH_TOML_ERRORS=(
 declare -a BASH_TOKEN_HISTORY=()
 
 # @description Appends to token history for improved error insight
-bash_toml.token_history_add() {
+btoml.token_history_add() {
 	local str=
 	printf -v str '%s' "$mode ($char) at $PARSER_LINE_NUMBER:$PARSER_COLUMN_NUMBER"
 
@@ -32,7 +32,7 @@ bash_toml.token_history_add() {
 	fi
 }
 
-bash_toml.parse_fail() {
+btoml.parse_fail() {
 	local error_key="$1"
 	local error_context="$2"
 
@@ -62,6 +62,6 @@ bash_toml.parse_fail() {
 	fi
 }
 
-bash_toml.error() {
+btoml.error() {
 	printf '%s\n' "Error: $1" >&2
 }

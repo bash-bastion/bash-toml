@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 
-file='./pkg/lib/cmd/bash-toml.sh'
-grep -n -B0 -A1 -e 'bash_toml.parse_fail' "$file" \
+file='./pkg/lib/cmd/bash-btoml.sh'
+grep -n -B0 -A1 -e 'btoml.parse_fail' "$file" \
 	| grep -vP '(^[0-9]*:|^--$)' \
 	| awk '
 	BEGIN {
