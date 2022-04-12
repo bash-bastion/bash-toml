@@ -61,3 +61,7 @@ bash_toml.parse_fail() {
 		exit 1
 	fi
 }
+
+bash_toml.error() {
+	printf '%s\n' "Error: $1" >&2
+}

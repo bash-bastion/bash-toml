@@ -1,12 +1,13 @@
 # shellcheck shell=bash
 
 toml.quick_string_get() {
-	REPLY=
+	unset REPLY; REPLY=
 	local toml_file="$1"
 	local key_name="$2"
 
 	if [ ! -f "$toml_file" ]; then
-		bprint.fatal "File '$toml_file' not found"
+		bash_toml.error "File '$toml_file' not found"
+		return 1
 	fi
 
 	local regex=$'^[ \t]*'${key_name}$'[ \t]*=[ \t]*[\047"](.*)[\047\"]'
@@ -32,7 +33,8 @@ toml.quick_string_get() {
 		REPLY="${BASH_REMATCH[1]}"
 	else
 		# This should not happen due to the '[[ $line == *"$key_name"*=* ]]' check above
-		bprint.fatal "Could not find key '$key_name' in file '$toml_file'"
+		bash_toml.error "Could not find key '$key_name' in file '$toml_file'"
+		return 1
 	fi
 }
 
@@ -45,7 +47,7 @@ toml.quick_array_get() {
 	# ensure.nonzero 'key_name'
 
 	if [ ! -f "$toml_file" ]; then
-		printf '%s\n' "Error: File '$toml_file' does not exist" >&2
+		bash_toml.error "File '$toml_file' does not exist"
 		return 2
 	fi
 
@@ -96,12 +98,12 @@ toml.quick_array_get() {
 			if [[ ${REPLIES[$i]} =~ $regex ]]; then
 				REPLIES[$i]="${BASH_REMATCH[1]}"
 			else
-				printf '%s\n' "Error: Key '$key_name' in file '$toml_file' is not valid" >&2
+				bash_toml.error "Key '$key_name' in file '$toml_file' is not valid"
 				return 2
 			fi
 		done
 	else
-		printf '%s\n' "Error: Key '$key_name' in file '$toml_file' must be set to an array that spans one line" >&2
+		bash_toml.error "Key '$key_name' in file '$toml_file' must be set to an array that spans one line"
 		return 2
 	fi
 }
@@ -114,15 +116,16 @@ toml.quick_array_append() {
 	# ensure.nonzero 'key_value'
 
 	if [ ! -f "$toml_file" ]; then
-		bprint.fatal "File '$toml_file' does not exist"
+		bash_toml.error "File '$toml_file' does not exist"
+		return 2
 	fi
 
 	if util.get_toml_array "$toml_file" 'dependencies'; then
 		local name=
 		for name in "${REPLIES[@]}"; do
 			if [ "${name%@*}" = "${key_value%@*}" ]; then
-				bprint.warn "A version of '${name%@*}' is already installed. Skipping"
-				return
+				bash_toml.error "A version of '${name%@*}' is already installed. Skipping"
+				return 2
 			fi
 		done; unset name
 
@@ -136,7 +139,8 @@ toml.quick_array_append() {
 			rm "$toml_file.bak"
 		fi
 	else
-		bprint.die "Key 'dependencies' not found in file '$toml_file'"
+		bash_toml.error "Key 'dependencies' not found in file '$toml_file'"
+		return 2
 	fi
 }
 
@@ -148,7 +152,8 @@ toml.quick_array_remove() {
 	# ensure.nonzero 'key_value'
 
 	if [ ! -f "$toml_file" ]; then
-		bprint.fatal "File '$toml_file' does not exist"
+		bash_toml.error "File '$toml_file' does not exist"
+		return 2
 	fi
 
 	if util.get_toml_array "$toml_file" 'dependencies'; then
@@ -161,11 +166,11 @@ toml.quick_array_remove() {
 			else
 				dependency_array+=("$name")
 			fi
-		done; unset name
+		done; unset -v name
 
 		if [ "$does_exist" != 'yes' ]; then
-			bprint.die "The package '$key_value' is not currently a dependency"
-			return
+			bash_toml.error "The package '$key_value' is not currently a dependency"
+			return 2
 		fi
 
 		mv "$toml_file" "$toml_file.bak"
@@ -185,6 +190,7 @@ toml.quick_array_remove() {
 		done < "$toml_file.bak" > "$toml_file"
 		rm "$toml_file.bak"
 	else
-		bprint.die "Key 'dependencies' not found in file '$toml_file'"
+		bash_toml.error "Key 'dependencies' not found in file '$toml_file'"
+		return 2
 	fi
 }
