@@ -4,16 +4,10 @@ A kickass Toml parser written in pure Bash
 
 The plan is to fully support TOML v1.0.0
 
-## Usage
+## Assumptions of Quick
 
-```sh
-declare -A TOML=()
-source bash-toml <<-"EOF"
-five = 'value'
-EOF
-
-printf '%s' "${TOML[five]}" # value
-```
+- Strings contain ASCII visible characters excluding `,`, `[`, `]`, `'`, `"`
+- No escaping in strings (everything literal)
 
 ## Support
 

@@ -9,8 +9,7 @@ toml.quick_string_get() {
 		bprint.fatal "File '$toml_file' not found"
 	fi
 
-	local regex="^[ "$'\t'"]*${key_name}[ "$'\t'"]*=[ "$'\t'"]*['\"](.*)['\"]"
-
+	local regex=$'^[ \t]*'${key_name}$'[ \t]*=[ \t]*[\047"](.*)[\047\"]'
 	local grep_line=
 	while IFS= read -r line || [ -n "$line" ]; do
 		if [[ $line =~ $regex ]]; then
@@ -42,20 +41,37 @@ toml.quick_array_get() {
 	local toml_file="$1"
 	local key_name="$2"
 
-	ensure.nonzero 'toml_file'
-	ensure.nonzero 'key_name'
+	# ensure.nonzero 'toml_file'
+	# ensure.nonzero 'key_name'
 
 	if [ ! -f "$toml_file" ]; then
-		bprint.fatal "File '$toml_file' does not exist"
+		printf '%s\n' "Error: File '$toml_file' does not exist" >&2
+		return 2
 	fi
 
+	local parse_mode=
 	local grep_line=
 	while IFS= read -r line || [ -n "$line" ]; do
-		if [[ $line == *"$key_name"*=* ]]; then
+		if [ "$parse_mode" = 'collect' ]; then
+			grep_line+="$line"
+
+			if [[ $line == *$'\135'* ]]; then
+				break
+			fi
+			continue
+		fi
+
+		# FIXME: this should be regex so it does not greedily match
+		# ex. if getting 'somekey', the value of 'somekey33' could be returned
+		if [[ $line == *"$key_name"*=*$'\133'*$'\135'* ]]; then
 			grep_line="$line"
 			break
+		elif [[ $line == *"$key_name"*=*$'\133'* ]]; then
+			grep_line="$line"
+			parse_mode='collect'
 		fi
 	done < "$toml_file"
+	unset -v parse_mode
 
 	# If the grep_line is empty, it means the key wasn't found, and we continue to
 	# the next configuration file. We need the intermediary grep check because
@@ -67,8 +83,9 @@ toml.quick_array_get() {
 		return 1
 	fi
 
-	local regex="[ \t]*${key_name}[ \t]*=[ \t]*\[[ \t]*(.*)[ \t]*\]"
-	if [[ "$grep_line" =~ $regex ]]; then
+	local regex=
+	printf -v regex '[ \t]*%s[ \t]*=[ \t]*\[[ \t]*(.*)[ \t]*\]' "$key_name"
+	if [[ $grep_line =~ $regex ]]; then
 		local -r arrayString="${BASH_REMATCH[1]}"
 
 		IFS=',' read -ra REPLIES <<< "$arrayString"
@@ -79,12 +96,12 @@ toml.quick_array_get() {
 			if [[ ${REPLIES[$i]} =~ $regex ]]; then
 				REPLIES[$i]="${BASH_REMATCH[1]}"
 			else
-				bprint.die "Key '$key_name' in file '$toml_file' is not valid"
+				printf '%s\n' "Error: Key '$key_name' in file '$toml_file' is not valid" >&2
 				return 2
 			fi
 		done
 	else
-		bprint.die "Key '$key_name' in file '$toml_file' must be set to an array that spans one line"
+		printf '%s\n' "Error: Key '$key_name' in file '$toml_file' must be set to an array that spans one line" >&2
 		return 2
 	fi
 }
@@ -93,8 +110,8 @@ toml.quick_array_append() {
 	local toml_file="$1"
 	local key_value="$2"
 
-	ensure.nonzero 'toml_file'
-	ensure.nonzero 'key_value'
+	# ensure.nonzero 'toml_file'
+	# ensure.nonzero 'key_value'
 
 	if [ ! -f "$toml_file" ]; then
 		bprint.fatal "File '$toml_file' does not exist"
@@ -127,8 +144,8 @@ toml.quick_array_remove() {
 	local toml_file="$1"
 	local key_value="$2"
 
-	ensure.nonzero 'toml_file'
-	ensure.nonzero 'key_value'
+	# ensure.nonzero 'toml_file'
+	# ensure.nonzero 'key_value'
 
 	if [ ! -f "$toml_file" ]; then
 		bprint.fatal "File '$toml_file' does not exist"
