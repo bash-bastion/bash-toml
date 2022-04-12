@@ -6,8 +6,7 @@ The plan is to fully support TOML v1.0.0
 
 ## Assumptions of Quick
 
-- Strings contain ASCII visible characters excluding `,`, `[`, `]`, `'`, `"`
-- No escaping in strings (everything literal)
+- The `quick_` methods ony parse [a subset of toml](https://github.com/hyperupcall/toml-subset)
 
 ## Support
 
