@@ -39,7 +39,7 @@ btoml.quick_string_get() {
 }
 
 btoml.quick_array_get() {
-	unset REPLIES; declare -ga REPLIES=()
+	unset REPLY; declare -ga REPLY=()
 	local toml_file="$1"
 	local key_name="$2"
 
@@ -90,13 +90,13 @@ btoml.quick_array_get() {
 	if [[ $grep_line =~ $regex ]]; then
 		local -r arrayString="${BASH_REMATCH[1]}"
 
-		IFS=',' read -ra REPLIES <<< "$arrayString"
-		for i in "${!REPLIES[@]}"; do
+		IFS=',' read -ra REPLY <<< "$arrayString"
+		for i in "${!REPLY[@]}"; do
 			# Treat all Toml strings the same; there shouldn't be
 			# any escape characters anyways
 			local regex="[ \t]*['\"](.*)['\"]"
-			if [[ ${REPLIES[$i]} =~ $regex ]]; then
-				REPLIES[$i]="${BASH_REMATCH[1]}"
+			if [[ ${REPLY[$i]} =~ $regex ]]; then
+				REPLY[$i]="${BASH_REMATCH[1]}"
 			else
 				btoml.error "Key '$key_name' in file '$toml_file' is not valid"
 				return 2
@@ -110,7 +110,8 @@ btoml.quick_array_get() {
 
 btoml.quick_array_append() {
 	local toml_file="$1"
-	local key_value="$2"
+	local key_name="$2"
+	local key_value="$3"
 
 	# ensure.nonzero 'toml_file'
 	# ensure.nonzero 'key_value'
@@ -122,14 +123,14 @@ btoml.quick_array_append() {
 
 	if util.get_toml_array "$toml_file" 'dependencies'; then
 		local name=
-		for name in "${REPLIES[@]}"; do
+		for name in "${REPLY[@]}"; do
 			if [ "${name%@*}" = "${key_value%@*}" ]; then
 				btoml.error "A version of '${name%@*}' is already installed. Skipping"
 				return 2
 			fi
 		done; unset name
 
-		if ((${#REPLIES[@]} == 0)); then
+		if ((${#REPLY[@]} == 0)); then
 			mv "$toml_file" "$toml_file.bak"
 			sed -e "s,\([ \t]*dependencies[ \t]*=[ \t]*.*\)\],\1'${key_value}']," "$toml_file.bak" > "$toml_file"
 			rm "$toml_file.bak"
@@ -160,7 +161,7 @@ btoml.quick_array_remove() {
 		local dependency_array=()
 		local does_exist='no'
 		local name=
-		for name in "${REPLIES[@]}"; do
+		for name in "${REPLY[@]}"; do
 			if [ "${name%@*}" = "${key_value%@*}" ]; then
 				does_exist='yes'
 			else

@@ -13,7 +13,7 @@ load './util/init.sh'
 	for n in {1..7}; do
 		btoml.quick_array_get "$BASALT_PACKAGE_DIR/tests/testdata/array/file1.toml" \
 			"key0${n}"
-		assert [ "${#REPLIES[@]}" -eq 0 ]
+		assert [ "${#REPLY[@]}" -eq 0 ]
 	done
 }
 
@@ -23,8 +23,8 @@ load './util/init.sh'
 		for n in {1..7}; do
 			btoml.quick_array_get "$BASALT_PACKAGE_DIR/tests/testdata/array/file1.toml" \
 				"key${m}${n}"
-			assert [ "${#REPLIES[@]}" -eq 1 ]
-			assert [ -z "${REPLIES[0]}" ]
+			assert [ "${#REPLY[@]}" -eq 1 ]
+			assert [ -z "${REPLY[0]}" ]
 		done
 	done
 }
@@ -34,9 +34,9 @@ load './util/init.sh'
 		for n in {1..7}; do
 			btoml.quick_array_get "$BASALT_PACKAGE_DIR/tests/testdata/array/file1.toml" \
 				"key${m}${n}"
-			assert [ "${#REPLIES[@]}" -eq 2 ]
-			assert [ "${REPLIES[0]}" = 'a' ]
-			assert [ "${REPLIES[1]}" = 'b' ]
+			assert [ "${#REPLY[@]}" -eq 2 ]
+			assert [ "${REPLY[0]}" = 'a' ]
+			assert [ "${REPLY[1]}" = 'b' ]
 		done
 	done
 }
@@ -45,7 +45,7 @@ load './util/init.sh'
 	for n in {0..1}; do
 		btoml.quick_array_get "$BASALT_PACKAGE_DIR/tests/testdata/array/file2.toml" \
 			"key${n}"
-		assert [ "${#REPLIES[@]}" -eq 1 ]
-		assert [ "${REPLIES[0]}" = 'multiline' ]
+		assert [ "${#REPLY[@]}" -eq 1 ]
+		assert [ "${REPLY[0]}" = 'multiline' ]
 	done
 }
