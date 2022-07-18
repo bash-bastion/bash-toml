@@ -1,23 +1,26 @@
 # shellcheck shell=bash
 
-declare -gA BASH_TOML_ERRORS=(
-	[INTERNAL_ERROR]='Internal error'
-	[NOT_IMPLEMENTED]='TOML feature has not been implemented'
-	[UNEXPECTED_BRANCH]='This branch was not supposed to be activated. Please submit an issue'
-	[UNICODE_INVALID]='The resulting unicode code point was invalid'
-	[KEY_ABSENT]='Key does not have a value'
-	[UNEXPECTED_EOF]='Unexpected end of line'
-	[UNEXPECTED_NEWLINE]='Unexpected newline'
-	[UNEXPECTED_CHARACTER]='An unexpected character was encountered' # Generalization of any of the following errors
-	[KEY_INVALID]='The key is not valid'
-	[VALUE_INVALID]='The value could not be parsed'
-	[VALUE_STRING_INVALID]='The string value could not be parsed'
-)
+# @description Initialize bash-toml
+bash_toml.util_init() {
+	declare -gA BASH_TOML_ERRORS=(
+		[INTERNAL_ERROR]='Internal error'
+		[NOT_IMPLEMENTED]='TOML feature has not been implemented'
+		[UNEXPECTED_BRANCH]='This branch was not supposed to be activated. Please submit an issue'
+		[UNICODE_INVALID]='The resulting unicode code point was invalid'
+		[KEY_ABSENT]='Key does not have a value'
+		[UNEXPECTED_EOF]='Unexpected end of line'
+		[UNEXPECTED_NEWLINE]='Unexpected newline'
+		[UNEXPECTED_CHARACTER]='An unexpected character was encountered' # Generalization of any of the following errors
+		[KEY_INVALID]='The key is not valid'
+		[VALUE_INVALID]='The value could not be parsed'
+		[VALUE_STRING_INVALID]='The string value could not be parsed'
+	)
 
-declare -a BASH_TOKEN_HISTORY=()
+	declare -a BASH_TOKEN_HISTORY=()
+}
 
 # @description Appends to token history for improved error insight
-btoml.token_history_add() {
+bash_toml.util_token_history_add() {
 	local str=
 	printf -v str '%s' "$mode ($char) at $PARSER_LINE_NUMBER:$PARSER_COLUMN_NUMBER"
 
@@ -32,7 +35,7 @@ btoml.token_history_add() {
 	fi
 }
 
-btoml.parse_fail() {
+bash_toml.parse_fail() {
 	local error_key="$1"
 	local error_context="$2"
 
@@ -62,6 +65,6 @@ btoml.parse_fail() {
 	fi
 }
 
-btoml.error() {
+bash_toml.error() {
 	printf '%s\n' "Error: $1" >&2
 }

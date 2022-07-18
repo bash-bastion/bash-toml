@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-btoml.is.whitespace() {
+bash_toml.is.whitespace() {
 	if [[ "$1" == @($'\u0009'|$'\u0020') ]]; then
 		return 0
 	else
@@ -8,7 +8,7 @@ btoml.is.whitespace() {
 	fi
 }
 
-btoml.is.newline() {
+bash_toml.is.newline() {
 	if [[ "$1" == @($'\u000A'|$'\u0D0A') ]]; then
 		return 0
 	else
@@ -16,7 +16,7 @@ btoml.is.newline() {
 	fi
 }
 
-btoml.is.table() {
+bash_toml.is.table() {
 	if [[ "$1" == \[ ]]; then
 		return 0
 	else
@@ -24,7 +24,7 @@ btoml.is.table() {
 	fi
 }
 
-btoml.is.double_quote() {
+bash_toml.is.double_quote() {
 	if [[ "$1" == \" ]]; then
 		return 0
 	else
@@ -32,7 +32,7 @@ btoml.is.double_quote() {
 	fi
 }
 
-btoml.is.single_quote() {
+bash_toml.is.single_quote() {
 	if [[ "$1" == \' ]]; then
 		return 0
 	else
@@ -40,7 +40,7 @@ btoml.is.single_quote() {
 	fi
 }
 
-btoml.is.backslash() {
+bash_toml.is.backslash() {
 	# shellcheck disable=SC1003
 	if [[ "$1" == \\ ]]; then
 		return 0
@@ -49,7 +49,7 @@ btoml.is.backslash() {
 	fi
 }
 
-btoml.is.control_character() {
+bash_toml.is.control_character() {
 	# shellcheck disable=SC1003
 	if [[ "$1" == [[:cntrl:]] ]]; then
 		return 0
@@ -58,7 +58,7 @@ btoml.is.control_character() {
 	fi
 }
 
-btoml.is.hex_digit() {
+bash_toml.is.hex_digit() {
 	# shellcheck disable=SC1003
 	if [[ "$1" == [[:xdigit:]] ]]; then
 		return 0
@@ -67,7 +67,7 @@ btoml.is.hex_digit() {
 	fi
 }
 
-btoml.is.octothorp() {
+bash_toml.is.octothorp() {
 	# shellcheck disable=SC1003
 	if [[ "$1" == \# ]]; then
 		return 0
@@ -76,7 +76,7 @@ btoml.is.octothorp() {
 	fi
 }
 
-btoml.is.valid_bare_key_char() {
+bash_toml.is.valid_bare_key_char() {
 	if [[ "$1" == [A-Za-z0-9_-] ]]; then
 		return 0
 	else
@@ -84,7 +84,7 @@ btoml.is.valid_bare_key_char() {
 	fi
 }
 
-btoml.is.equals_sign() {
+bash_toml.is.equals_sign() {
 	if [[ "$1" == = ]]; then
 		return 0
 	else

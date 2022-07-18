@@ -1,6 +1,8 @@
 [package]
+lang = 'bash'
+type = 'lib'
 name = 'bash-toml'
-slug = 'btoml'
+slug = 'bash_toml'
 version = '0.2.0'
 authors = ['Edwin Kofler" <edwin@kofler.dev>']
 description = 'A kickass Toml parser written in pure Bash'

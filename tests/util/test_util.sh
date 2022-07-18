@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-test_util.btoml.has_key() {
+test_util.bash_toml.has_key() {
 	if test_util.object_has_key 'TOML' "$1"; then
 		return 0
 	else
@@ -8,7 +8,7 @@ test_util.btoml.has_key() {
 	fi
 }
 
-test_util.btoml.key_has_value() {
+test_util.bash_toml.key_has_value() {
 	if test_util.object_has_key_and_value 'TOML' "$1" "$2"; then
 		return 0
 	else
