@@ -40,6 +40,31 @@ bash_toml.util_line_is_part_of_array() {
 	fi
 }
 
+bash_toml.util_line_is_part_of_object() {
+	local -n __mode="$1"
+	local key_location="$2"
+	local line="$3"
+
+	if [ "$__mode" = '--' ]; then
+		return 1
+	fi
+
+	local regex1=$'^[ \t]*'"\[$key_location\]"
+	local regex2=$'^\[run.shoptOptions\]'
+	if [[ $line =~ $regex1 ]]; then
+		__mode='matched-objhier'
+		return 1
+	elif [[ $line =~ $regex2 ]]; then
+		__mode='--'
+	fi
+
+	if [ "$__mode" = 'matched-objhier' ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
 bash_toml.util_parse_array() {
 	local -n __arr="$1"
 	local str="$2"

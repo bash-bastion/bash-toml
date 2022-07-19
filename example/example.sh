@@ -20,3 +20,7 @@ done; unset -v f
 # bash_toml.quick_array_replace './basalt.toml' 'run.dependencies' 'https://github.com/hyperupcall/bats-all@v4.3.0' 'uwu'
 # printf '%s' "$REPLY"
 
+bash_toml.quick_object_get './basalt.toml' 'run.setOptions'
+for key in "${!REPLY[@]}"; do
+	echo "$key: ${REPLY[$key]}"
+done

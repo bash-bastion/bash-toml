@@ -152,3 +152,23 @@ bash_toml.quick_array_replace() {
 	}
 	bash_toml.quick_array_metamodify "$toml_file" "$key_location" 'handler'
 }
+
+bash_toml.quick_object_get() {
+	unset -v REPLY; declare -gA REPLY=()
+	local toml_file="$1"
+	local key_location="$2"
+
+	# shellcheck disable=SC2034,SC1007
+	local state=''
+	while IFS= read -r line || [ -n "$line" ]; do
+		if bash_toml.util_line_is_part_of_object 'state' "$key_location" "$line"; then
+			local regex=$'[ \t]*(.*?[^ \t])[ \t]*=[ \t]*[\'"](.*?[^ \t])[\'"]'
+			if [[ $line =~ $regex ]]; then
+				local key="${BASH_REMATCH[1]}"
+				local value="${BASH_REMATCH[2]}"
+
+				REPLY["$key"]="$value"
+			fi
+		fi
+	done < "$toml_file"; unset -v line
+}
