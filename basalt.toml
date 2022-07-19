@@ -8,7 +8,11 @@ authors = ['Edwin Kofler" <edwin@kofler.dev>']
 description = 'A kickass Toml parser written in pure Bash'
 
 [run]
-dependencies = ['hyperupcall/bash-object@v0.8.0', 'https://github.com/hyperupcall/bats-all@v4.3.0', 'https://github.com/hyperupcall/bash-core@v0.6.0']
+dependencies = [
+	'hyperupcall/bash-object@v0.8.0',
+	'https://github.com/hyperupcall/bats-all@v4.3.0',
+	'https://github.com/hyperupcall/bash-core@v0.6.0',
+]
 sourceDirs = ['pkg/src/public', 'pkg/src/util']
 builtinDirs = []
 binDirs = []

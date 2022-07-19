@@ -1,5 +1,104 @@
 # shellcheck shell=bash
 
+# @description Given an object hierarchy (ex. run.dependencies),
+# get the full value of
+bash_toml.util_line_is_part_of_array() {
+	local -n __mode="$1"
+	local key_location="$2"
+	local key_name="$3"
+	local line="$4"
+
+	if [ "$__mode" = '--' ]; then
+		return 1
+	fi
+
+	local regex1=$'^[ \t]*'"\[$key_location\]"
+	local regex2=$'^[ \t]*'"[.*?]"$'[ \t]*'
+	if [[ $line =~ $regex1 ]]; then
+		__mode='matched-objhier'
+		return 1
+	elif [[ $line =~ $regex2 ]]; then
+		__mode=''
+	fi
+
+	if [ "$__mode" = 'matched-objhier' ]; then
+		local regex1=^$'[ \t]*'"$key_name"$'[ \t]*='
+		if [[ $line =~ $regex1 ]]; then
+			__mode='matched-all'
+		fi
+	fi
+
+	if [ "$__mode" = 'matched-all' ]; then
+		local regex2=$'[ \t]*\][ \t]*$'
+		if [[ $line =~ $regex2 ]]; then
+			__mode='--'
+		fi
+
+		return 0
+	else
+		return 1
+	fi
+}
+
+bash_toml.util_parse_array() {
+	local -n __arr="$1"
+	local str="$2"
+
+	local i=0
+	while IFS= read -rN1 char; do
+		if [[ $char == '"' || $char == "'" ]]; then
+			__arr+=($((i)))
+		fi
+
+		((++i))
+	done <<< "$str"; unset -v char
+	unset -v i
+}
+
+# @note Uses dynamically scoped 'REPLY'
+bash_toml.util_iterate() {
+	local -n __arr="$1"
+	local handler="$2"
+
+	local pre="${line:0:${__arr[0]}}"
+	REPLY+=$pre
+
+	local i
+	for ((i = 0; i < ${#__arr[@]}; i = i + 2)); do
+		local value_start=$((__arr[i] + 1))
+		local value_end=$((__arr[i+1] - __arr[i] - 1))
+		local post_start=$((__arr[i+1] + 1))
+		local post_end=$((__arr[i+2] - __arr[i+1] - 1))
+		if ((i == ${#__arr[@]} - 2)); then
+			post_end="${#line}"
+		fi
+
+		local quote=\'
+		local item_value="${line:$value_start:$value_end}"
+		local post="${line:$post_start:$post_end}"
+
+		local ret=0
+		REPLY_INNER_CMD=
+		"$handler" "$item_value" "$i" '__arr'
+		if [ "$REPLY_INNER_CMD" = 'skip' ]; then
+			REPLY="${REPLY%"${REPLY##*[![:space:]]}"}"
+			continue
+		elif [ "$REPLY_INNER_CMD" = 'add' ]; then
+			REPLY+=${quote}${item_value}${quote}${post}
+			ret=1
+		elif [ "$REPLY_INNER_CMD" = 'replace' ]; then
+			REPLY+=${quote}${REPLY_INNER_VALUE}${quote}${post}
+			ret=1
+		elif [ "$REPLY_INNER_CMD" = 'append' ]; then
+			REPLY+=${quote}${item_value}${quote}
+			REPLY+=,\ ${quote}${REPLY_INNER_VALUE}${quote}${post}
+			ret=1
+		fi
+	done; unset -v i
+
+	return "${ret:-0}"
+}
+
 # @description Initialize bash-toml
 bash_toml.util_init() {
 	declare -gA BASH_TOML_ERRORS=(
