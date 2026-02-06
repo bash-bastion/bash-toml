@@ -6,7 +6,7 @@ The plan is to fully support TOML v1.0.0
 
 ## Assumptions of Quick
 
-- The `quick_` methods ony parse [a subset of toml](https://github.com/hyperupcall/toml-subset)
+- The `quick_` methods ony parse [a subset of toml](./spec.md)
 
 ## Support
 
@@ -32,3 +32,11 @@ Support is generally limited at the moment
 - Value: Inline Table
 - Construct: Table
 - Construct Array of Tables
+
+## Installation
+
+Use [Basalt](https://github.com/bash-bastion/basalt), a Bash package manager, to add this project as a dependency
+
+```sh
+basalt add bash-bastion/bash-toml
+```
