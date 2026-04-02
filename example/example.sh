@@ -11,7 +11,7 @@ done; unset -v f
 # done
 # printf '\n'
 
-# bash_toml.quick_array_append './basalt.toml' 'run.dependencies' 'rawrrrr'
+# bash_toml.quick_array_append './basalt.toml' 'run.dependencies' 'bash-json'
 # printf '%s' "$REPLY"
 
 # bash_toml.quick_array_remove './basalt.toml' 'run.dependencies' 'https://github.com/hyperupcall/bats-all@v4.3.0'
